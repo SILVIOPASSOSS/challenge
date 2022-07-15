@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Student;
+use App\Http\Controllers\StudentController;
+
 
 
 /*
@@ -20,11 +22,22 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-//References
-Route::resource('student', App\Http\Controllers\StudentController::class)->only(['index', 'store', 'update', 'show', 'destroy']);
 
 
 //Registering the address to return registered students
-Route::get('students', function() {
+Route::get('/student', function() {
     return Student::all();
 });
+
+/*  */
+/* Route for SAVE*/
+Route::post('/student/register', [StudentController::class, 'store']);
+
+/* Route for Searc*/
+Route::get('/student/{id}', [StudentController::class, 'show']);
+
+/* Route for Delete */
+Route::delete('/student/{id}', [StudentController::class, 'destroy']);
+
+/* Route for Update */
+Route::put('/student/{id}', [StudentController::class, 'update']);
