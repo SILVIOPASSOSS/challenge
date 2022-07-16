@@ -68,12 +68,14 @@
      <router-view/>
       <!--  -->
     </v-main>
+    <Footer/>
   </v-app>
+  
 </template>
 <script>
-
+import Footer from './components/Footer.vue'
   export default {
-  /* components: { InputTarefa }, */
+  components: {  Footer },
     data: () => ({ 
       drawer: null,
       items: [
