@@ -2,7 +2,7 @@
   <v-container bg fill-height grid-list-md text-xl-center fluid class="fluid">
     <v-row class="d-flex justify-center" allign="center">
       <v-col cols="10">
-        <v-card class="pa-4">
+         <v-card class="pa-4">
           <v-card-title>
             <v-spacer></v-spacer>
             <v-text-field
@@ -71,6 +71,7 @@
                     <v-icon small @click="deleteStudent(item)"
                       >mdi-delete</v-icon
                     >
+                    
                   </v-btn>
                 </template>
                 <span>Deletar usuário</span>
@@ -79,16 +80,30 @@
           </v-data-table>
         </v-card>
       </v-col>
+
+
+<!--  NOTIFICATIONS -->
+    <v-snackbar v-model="snackbar.show" :timeout="timeout" :color="snackbar.color" vertical>
+      {{snackbar.message}}
+      <v-btn dark text @click="snackbar = false">Fechar</v-btn>
+    </v-snackbar>
+<!-- END  NOTIFICATIONS -->
+      <ModalConfirm />
     </v-row>
   </v-container>
 </template>
 
 <script>
+import ModalConfirm from '../components/modals/Modal.vue'
 import axios from 'axios'
 import { API_BASE_URL } from '../config.js'
 
+
 export default {
   name: 'students',
+
+  components: { ModalConfirm },
+
   data() {
     return {
       search: '',
@@ -103,39 +118,62 @@ export default {
         { text: 'Nome', value: 'name' },
         { text: 'CPF', value: 'cpf' },
         { text: 'Ações', value: 'actions', sortable: false }
-      ]
+      ],
+      snackbar: {
+        show: false,
+        message: null,
+        color: null,
+        timeout: '2000'
+      },
+      dialog: ''
     }
   },
   mounted() {
     this.getStudents()
   },
   methods: {
-    getStudents() {
-      axios
-        .get(API_BASE_URL + '/student')
-        .then(response => {
+    async getStudents() {
+      axios.get(API_BASE_URL + '/student')
+
+          .then(response => {
           this.students = response.data
-          console.log(this.students)
+          console.log(students.snackbar)
         })
-        .catch(error => {
-          console.log(error)
+          .catch(error => {
+          console.log("Aconteceu um erro",error)
         })
+        
     },
 
-    deleteStudent(item) {
-      console.log(item.id)
+    /*  
+    // error.response.status 
+    */
+    async deleteStudent(item) {
       if (confirm('Deseja excluir o registro do acadêmico?')) {
-        axios
-          .delete(API_BASE_URL + `/student/${item.id}`)
-          .then(response => {
+        let academic = await axios.delete(API_BASE_URL + `/student/${item.id}`)
+          .then(() => {
+            this.snackbar ={
+              message:  'Deletado com sucesso',
+              color: 'success',
+              show: true,
+              timeout: 200
+            } 
             this.getStudents()
+            
           })
           .catch(error => {
-            console.log(error)
+            this.snackbar = {
+                        message: 'Ops! Ocorreu um erro',
+                        color: 'error',
+                        show: true,
+                        timeout: 200
+            }
           })
       }
     }
   }
 }
 </script>
-<style></style>
+
+<style>
+</style>
