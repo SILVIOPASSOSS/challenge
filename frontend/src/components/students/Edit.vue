@@ -10,6 +10,9 @@
               outlined
               label="Name"
               placeholder="Informe o nome completo"
+              :error-messages="nameErrors"
+              @input="$v.students.name.$touch()"
+              @blur="$v.students.name.$touch()"
               required
             >
             </v-text-field>
@@ -21,6 +24,9 @@
               placeholder="Informe apenas um e-mail"
               maxlength="50"
               required
+              :error-messages="emailErrors"
+              @input="$v.students.email.$touch()"
+              @blur="$v.students.email.$touch()"
             >
             </v-text-field>
 
@@ -28,25 +34,11 @@
               v-model="students.academic_record"
               label="Registro Acadêmico"
               outlined
-              placeholder="Informe o registro acadêmico"
-              maxlength="11"
-              type="number"
-              required
               readonly
             >
             </v-text-field>
 
-            <v-text-field
-              v-model="students.cpf"
-              label="CPF"
-              outlined
-              placeholder="Informe o documento"
-              type="number"
-              maxlength="11"
-              :counter="11"
-              readonly
-              required
-            >
+            <v-text-field v-model="students.cpf" label="CPF" outlined readonly>
             </v-text-field>
             <v-template class="d-flex justify-center py-3">
               <v-btn color="error" class="mr-4" :to="{ name: 'home' }">
@@ -57,6 +49,12 @@
           </v-form>
         </v-card>
       </v-col>
+      <!--  NOTIFICATIONS -->
+      <v-snackbar v-model="snackbar.show" :timeout="timeout" :color="snackbar.color" vertical>
+        {{snackbar.message}}
+        <v-btn dark text @click="snackbar = false">Fechar</v-btn>
+      </v-snackbar>
+      <!-- END  NOTIFICATIONS -->
     </v-row>
   </v-container>
 </template>
@@ -65,8 +63,26 @@
 import axios from 'axios'
 import { API_BASE_URL } from '../../config.js'
 
+import { required, maxLength, minLength, email } from 'vuelidate/lib/validators'
+
 export default {
   name: 'edit-student',
+
+  validations: {
+    students: {
+      name: {
+        required,
+        minLength: minLength(3),
+        maxLength: maxLength(50)
+      },
+      email: {
+        required,
+        email
+      }, 
+    }
+
+  },
+
   data() {
     return {
       students: {
@@ -74,34 +90,83 @@ export default {
         email: '',
         academic_record: '',
         cpf: ''
-      }
+      },
+    /* msg notification  */
+      snackbar: {
+        show: false,
+        message: null,
+        color: null,
+        timeout: null
+      },
     }
   },
   mounted() {
     this.getStudents()
   },
 
+  computed: {
+    nameErrors() {
+      const errors = []
+      if (!this.$v.students.name.$dirty) return errors
+      !this.$v.students.name.minLength &&
+        errors.push('O Nome deve conter no mínimo 3 caracteres.')
+      !this.$v.students.name.maxLength &&
+        errors.push('Nome só pode ter no máximo 50 caracteres.')
+      !this.$v.students.name.required &&
+        errors.push('Obrigatório fornecer um nome.')
+      return errors
+      },
+      emailErrors() {
+        const errors = []
+        if (!this.$v.students.email.$dirty) return errors
+        !this.$v.students.email.email && 
+          errors.push('Insira um e-mail válido.')
+        !this.$v.students.email.required &&
+          errors.push('Obrigatório fornecer um e-mail.')
+        return errors
+      }
+  },
+
   methods: {
+    validate() {
+      this.$v.$touch()
+      if (this.$v.$invalid) {
+        return
+      }
+    },
+
     async getStudents() {
-      axios
+      await axios
         .get(API_BASE_URL + `/student/${this.$route.params.id}`) //.get(API_BASE_URL + `/student/${this.$route.params.id}`)
         .then(response => {
           this.students = response.data
-          console.log(this.students)
         })
         .catch(error => {
-          console.log(error)
+          console.log(error.message)
         })
     },
 
     updateStudent() {
+      /* check form before Register in BD */
       axios
         .put(API_BASE_URL + `/student/${this.$route.params.id}`, this.students) //axios.put(`/api/student/${this.$route.params.id}`, this.student)
-        .then(response => {
-          this.$router.push({ name: 'home' })
+        .then(() => {
+            //alert("deletado com sucesso")
+            this.snackbar ={
+              message:  'Cadastrado com sucesso',
+              color: 'success',
+              show: true,
+              timeout: 200
+            }
+            this.$router.push({ name: 'home' })
         })
         .catch(error => {
-          console.log(error)
+          this.snackbar = {
+                        message: 'Ops! Ocorreu um erro, tente novamente',
+                        color: 'error',
+                        show: true,
+                        timeout: 200
+          }
         })
     }
   }
