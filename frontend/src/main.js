@@ -6,9 +6,9 @@ import vuetify from './plugins/vuetify'
 import axios from 'axios'
 import Vuelidate from 'vuelidate'
 
-
-Vue.component('notifications', require('./components/Notifications'))
-
+/*  for CPF mask */
+import VueMask from 'v-mask'
+Vue.use(VueMask)
 
 Vue.config.productionTip = false
 
