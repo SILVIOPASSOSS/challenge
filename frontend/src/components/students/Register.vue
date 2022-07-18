@@ -10,15 +10,8 @@
   >
     <v-row class="d-flex justify-center" allign="center">
       <v-col cols="7">
-        <!-- <v-alert v-if="errors.length" dense outlined type="error">
-          <ul>
-            <li v-for="(error, index) in errors" :key="index">
-              {{ error }}
-            </li>
-          </ul>
-        </v-alert> -->
         <v-card class="pa-4">
-          <v-form ref="form" @submit.prevent="saveRegister" class="pa-1">
+          <v-form ref="form" @submit.prevent="submitSaveRegister" class="pa-1">
             <v-text-field
               v-model="student.name"
               :counter="50"
@@ -27,7 +20,6 @@
               :error-messages="nameErrors"
               @input="$v.student.name.$touch()"
               @blur="$v.student.name.$touch()"
-              required
             ></v-text-field>
             <v-text-field
               v-model="student.email"
@@ -36,40 +28,36 @@
               :error-messages="emailErrors"
               @input="$v.student.email.$touch()"
               @blur="$v.student.email.$touch()"
-              required
             ></v-text-field>
             <v-text-field
               v-model="student.academic_record"
               label="Registro Acadêmico"
               placeholder="Informe o registro acadêmico"
               type="number"
-              maxlength="11"
+              maxlength=11
               :error-messages="academicErrors"
               @input="$v.student.academic_record.$touch()"
               @blur="$v.student.academic_record.$touch()"
-              required
             >
             </v-text-field>
             <v-text-field
               v-model="student.cpf"
               label="CPF"
               placeholder="Informe o número do documento"
-              type="number"
-              maxlength="11"
-              :counter="11"
+              v-mask="'###.###.###-##'"             
               :error-messages="cpfErrors"
+              @keydown.enter.stop.prevent
               @input="$v.student.cpf.$touch()"
               @blur="$v.student.cpf.$touch()"
-              required
-              :mask="'###.###.###-##'"
-            ></v-text-field>
-
-            <v-template class="d-flex justify-center py-2">
+              
+            >
+            </v-text-field>
+            <div class="d-flex justify-center py-2">
               <v-btn color="error" class="mr-4" :to="{ name: 'home' }">
                 Cancelar
               </v-btn>
-              <v-btn color="primary" type="submit"> Salvar </v-btn>
-            </v-template> 
+              <v-btn color="primary" type="submit" :disabled="$v.$invalid">Salvar</v-btn>
+            </div> 
           </v-form>
         </v-card>
       </v-col>
@@ -87,30 +75,13 @@
 import axios from 'axios'
 import { API_BASE_URL } from '../../config.js'
 
-//import useVuelidate from '@vuelidate/core'
 import { required, maxLength, minLength, email } from 'vuelidate/lib/validators'
 
-export default {
+import { validateCPF, ensureOnlyDigitsLong  } from '../../../src/validators/cpf'
 
-  validations: {
-    student: {
-      name: {
-        required,
-        minLength: minLength(3),
-        maxLength: maxLength(50)
-      },
-      email: {
-        required,
-        email
-      },
-      academic_record: {
-        required
-      },
-      cpf: {
-        required
-      }
-    }
-  },
+
+
+export default {
 
   data() {
     return {
@@ -131,6 +102,70 @@ export default {
     }
   },
 
+  validations: {
+    student: {
+      name: {
+        required,
+        minLength: minLength(3),
+        maxLength: maxLength(50),
+      },
+      email: {
+        required,
+        email
+      },
+      academic_record: {
+        required,
+        async uniqueAcademic(value){
+          if(value === "") return true
+          const response = await axios.get(API_BASE_URL + '/student')
+          const students = response.data
+          const alreadyDoneRegistration = students.find( student => student.academic_record == value  )
+          if(alreadyDoneRegistration){
+            return false
+          }
+          return true
+        }
+      }, 
+      
+      cpf: {
+        required,
+        validateCPF,
+        ensureOnlyDigitsLong
+      },
+    }
+  },
+
+  methods: {
+    submitSaveRegister() {
+      this.$v.$touch()
+      if (this.$v.$invalid){
+        return
+      }
+      let url = API_BASE_URL + '/student/register'
+        axios
+          .post(url, this.student)
+          .then(() => {
+              this.snackbar ={
+                message:  'Cadastrado com sucesso',
+                color: 'success',
+                show: true,
+                timeout: 200
+              }
+              this.$refs.form.reset()
+              this.$v.$reset()
+          })
+          .catch(error => {
+            this.snackbar = {
+                          message: 'Ops! Ocorreu um erro, tente novamente',
+                          color: 'error',
+                          show: true,
+                          timeout: 200
+            }
+        })
+      
+    }, 
+  }, 
+  
   computed: {
     nameErrors() {
       const errors = []
@@ -154,46 +189,19 @@ export default {
     academicErrors() {
       const errors = []
       if (!this.$v.student.academic_record.$dirty) return errors
-      !this.$v.student.academic_record.required &&
-        errors.push('Obrigatório fornecer o nº de Registro.')
+      !this.$v.student.academic_record.required && errors.push('Obrigatório fornecer o nº de Registro.')
+      !this.$v.student.academic_record.uniqueAcademic && errors.push('Existe um registro com esse nº em uso.')
       return errors
     },
     cpfErrors() {
       const errors = []
       if (!this.$v.student.cpf.$dirty) return errors
-      !this.$v.student.cpf.required &&
-        errors.push('Obrigatório fornecer o número de documento.')
+      !this.$v.student.cpf.required && errors.push('Obrigatório fornecer o número de documento.')
+      !this.$v.student.cpf.ensureOnlyDigitsLong && errors.push('CPF deve conter 11 digitos')
+      !this.$v.student.cpf.validateCPF && errors.push('CPF fornecido é inválido')
       return errors
-    }
-  },
-
-  methods: {
-
-    async saveRegister() {
-      let url = API_BASE_URL + '/student/register'
-      await axios
-        .post(url, this.student)
-        .then(() => {
-            //alert("deletado com sucesso")
-            this.snackbar ={
-              message:  'Cadastrado com sucesso',
-              color: 'success',
-              show: true,
-              timeout: 200
-            }
-            this.$refs.form.reset()
-            this.$v.$reset()
-        })
-        .catch(error => {
-          this.snackbar = {
-                        message: 'Ops! Ocorreu um erro, tente novamente',
-                        color: 'error',
-                        show: true,
-                        timeout: 200
-          }
-        })
-    }   
-  }   
+    },
+  }
 }
 </script>
 <style scoped>
