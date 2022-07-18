@@ -44,7 +44,7 @@
               <v-btn color="error" class="mr-4" :to="{ name: 'home' }">
                 Cancelar
               </v-btn>
-              <v-btn color="primary" type="submit"> Salvar </v-btn>
+              <v-btn color="primary" type="submit" :disabled="$v.$invalid"> Salvar </v-btn>
             </v-template>
           </v-form>
         </v-card>
@@ -80,7 +80,6 @@ export default {
         email
       }, 
     }
-
   },
 
   data() {
@@ -103,38 +102,7 @@ export default {
   mounted() {
     this.getStudents()
   },
-
-  computed: {
-    nameErrors() {
-      const errors = []
-      if (!this.$v.students.name.$dirty) return errors
-      !this.$v.students.name.minLength &&
-        errors.push('O Nome deve conter no mínimo 3 caracteres.')
-      !this.$v.students.name.maxLength &&
-        errors.push('Nome só pode ter no máximo 50 caracteres.')
-      !this.$v.students.name.required &&
-        errors.push('Obrigatório fornecer um nome.')
-      return errors
-      },
-      emailErrors() {
-        const errors = []
-        if (!this.$v.students.email.$dirty) return errors
-        !this.$v.students.email.email && 
-          errors.push('Insira um e-mail válido.')
-        !this.$v.students.email.required &&
-          errors.push('Obrigatório fornecer um e-mail.')
-        return errors
-      }
-  },
-
   methods: {
-    validate() {
-      this.$v.$touch()
-      if (this.$v.$invalid) {
-        return
-      }
-    },
-
     async getStudents() {
       await axios
         .get(API_BASE_URL + `/student/${this.$route.params.id}`) //.get(API_BASE_URL + `/student/${this.$route.params.id}`)
@@ -147,7 +115,10 @@ export default {
     },
 
     updateStudent() {
-      /* check form before Register in BD */
+      this.$v.$touch()
+      if (this.$v.$invalid){
+        return
+      } 
       axios
         .put(API_BASE_URL + `/student/${this.$route.params.id}`, this.students) //axios.put(`/api/student/${this.$route.params.id}`, this.student)
         .then(() => {
@@ -169,6 +140,29 @@ export default {
           }
         })
     }
-  }
+  },
+  computed: {
+    nameErrors() {
+      const errors = []
+      if (!this.$v.students.name.$dirty) return errors
+      !this.$v.students.name.minLength &&
+        errors.push('O Nome deve conter no mínimo 3 caracteres.')
+      !this.$v.students.name.maxLength &&
+        errors.push('Nome só pode ter no máximo 50 caracteres.')
+      !this.$v.students.name.required &&
+        errors.push('Obrigatório fornecer um nome.')
+      return errors
+    },
+    emailErrors() {
+      const errors = []
+      if (!this.$v.students.email.$dirty) return errors
+      !this.$v.students.email.email && 
+        errors.push('Insira um e-mail válido.')
+      !this.$v.students.email.required &&
+        errors.push('Obrigatório fornecer um e-mail.')
+      return errors
+    }
+  },
+
 }
 </script>
