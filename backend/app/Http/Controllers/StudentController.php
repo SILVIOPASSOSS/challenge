@@ -32,7 +32,6 @@ class StudentController extends Controller
     {
         //
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -41,26 +40,15 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-
-        $student = Student::create($request->all());
-        return (new StudentResource($student))
+        if ($student = Student::firstOrCreate($request->all()))
+        {
+            return (new StudentResource($student))
             ->response('OK')
             ->setStatusCode(201);
-
-            /* Other method for register data in BD */
-        /*
-            $student = new Student;
-            $student->name              = $request->name;
-            $student->email             = $request->email;
-            $student->academic_record   = $request->academic_record;
-            $student->cpf               = $request->cpf;
-
-            $student->save();
-            return response()->json([
-                'message'=>'Cadastro inserido',
-                'student'=>$student,
-                'status'=>200]);
-        */
+        }
+        else{
+            return response()->json($student->messages(), 500);
+        }
     }
 
     /**
@@ -95,48 +83,11 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student, $id)
     {
-
         $student = Student::find($id);
-        var_dump($request->name);
         $student->fill($request->all())->save();
         return response()->json([
             'student'=>$student
         ]);
-
-        /* $student = Student::findOrFail($id);
-        $student->update($request->all());
-        var_dump($student);
-        return response()->json([
-            'student'=>$student
-        ]); */
-
-       /*
-        $student->fill($request->post())->save();
-        return response()->json([
-            'student'=>$student
-        ]); */
-
-
-        /* if (Student::where('id', $id)->exists()) {
-            $student = Student::find($id);
-            var_dump($student->name);
-            $student->name = is_null($request->name) ? $student->name : $request->name;
-            $student->email =  is_null($request->email) ? $student->email : $request->email;
-            $student->academic_record =  is_null($request->academic_record) ? $student->academic_record : $request->academic_record;
-            $student->cpf = is_null($request->cpf) ? $student->cpf : $request->cpf;
-            $student->save();
-
-
-            return response()->json([
-                "message" => "records updated successfully"
-            ], 200);
-            } else {
-            return response()->json([
-                "message" => "Student not found"
-            ], 404);
-
-        } */
-
     }
 
     /**
