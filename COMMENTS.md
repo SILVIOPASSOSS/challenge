@@ -1,8 +1,6 @@
-# challenge
-Project of test
 # GrupoA - Challenge Test 
 
-Esta aplicação tem como finalidade realizar cadastros.
+<p align="center">🚀 Aplicação para cadastro de alunos, consumindo uma api e componentes reutilizáveis</p>
 
 
 # Tecnologias usadas
