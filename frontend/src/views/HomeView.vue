@@ -186,7 +186,7 @@ export default {
           console.log(students.snackbar);
         })
         .catch((error) => {
-          console.log("Aconteceu um erro", error);
+          
         });
     },
 

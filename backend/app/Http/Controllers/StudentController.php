@@ -40,15 +40,8 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-        if ($student = Student::firstOrCreate($request->all()))
-        {
-            return (new StudentResource($student))
-            ->response('OK')
-            ->setStatusCode(201);
-        }
-        else{
-            return response()->json($student->messages(), 500);
-        }
+        $student = Student::firstOrCreate($request->all());
+
     }
 
     /**
