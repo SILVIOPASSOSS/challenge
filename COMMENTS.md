@@ -1,5 +1,5 @@
-# GrupoA - Challenge Test 
-
+<h1 align="center">GrupoA - Challenge Test</h1>
+	
 <p align="center">🚀 Aplicação para cadastro de alunos, consumindo uma api e componentes reutilizáveis</p>
 
 
