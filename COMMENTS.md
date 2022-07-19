@@ -69,10 +69,17 @@ Segue as páginas abaixo:
 	 Validações dos inputs são feitos com o Vuelidate e algumas customizadas.
 	 Não realizei testes unitários "direto no código", todos realizados foram feitos manualmente.
 
+### Features
+
+- [x] Cadastro de aluno
+- [x] Edição do cadastro 
+- [x] Exclusão do cadastro
+
 ## Publicação - Deploy
 
  - Front-end hospedado no netlify:
 	 - https://vermillion-croquembouche-6fa28e.netlify.app
+[![Netlify Status](https://api.netlify.com/api/v1/badges/00218e5d-8fd3-467e-a06c-8c8f166924d3/deploy-status)](https://app.netlify.com/sites/vermillion-croquembouche-6fa28e/deploys)
 - Servidor/API - Heroku:
 	- https://buildernew.herokuapp.com
 
